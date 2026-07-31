@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Avatar,
   Box,
@@ -16,7 +16,7 @@ import ArticleOutlinedIcon from "@mui/icons-material/ArticleOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { getAllPosts, getPostById } from "../../redux/dashboard/dashboardThunk";
+import { getPostById, toggleUpvote } from "../../redux/dashboard/dashboardThunk";
 import { logoutUser } from "../../redux/auth/authThunk";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
@@ -30,18 +30,19 @@ function Profile() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-const myposts = useSelector((state) => state.profile?.myposts || []);
-  const post = useSelector((state) => state.dashboard.post);
-  const loading = useSelector((state) => state.loader.loading);
-  // NOTE: adjust these field names to match your actual auth slice shape.
+  const myposts = useSelector((state) => state.profile?.viewedUserPosts || []);
+  const post = useSelector((state) => state.dashboard?.post || {});
+  const loading = useSelector((state) => state.loader?.loading || false);
   const { user } = useSelector((state) => state.auth);
 
   const [postDet, setPostDet] = useState(false);
   const [openLogout, setOpenLogout] = useState(false);
+
   useEffect(() => {
-    dispatch(getPostsByUser(user.id));
-    console.log(user, "new response");
-  }, []);
+    if (user?.id) {
+      dispatch(getPostsByUser({ id: user.id, page: 0, size: 10 }));
+    }
+  }, [dispatch, user?.id]);
 
   return (
     <>
@@ -69,16 +70,7 @@ const myposts = useSelector((state) => state.profile?.myposts || []);
           <PostDetailsDialog
             open={postDet}
             onClose={() => setPostDet(false)}
-            post={{
-              title: `${post.title}`,
-              description: `${post.description}`,
-              model: `${post.model}`,
-              category: `${post.category}`,
-              creatorName: `${post.creatorName}`,
-              avatar: "",
-              likes: `${post.likeCount}`,
-              createdAt: `${post.createdAt}`,
-            }}
+            post={post}
           />
 
           <LogoutDialog
@@ -86,7 +78,7 @@ const myposts = useSelector((state) => state.profile?.myposts || []);
             onClose={() => setOpenLogout(false)}
             onLogout={() => {
               dispatch(logoutUser()).then((v) => {
-                if (v.meta.requestStatus === "fulfilled") {
+                if (v.meta?.requestStatus === "fulfilled") {
                   navigate("/", { replace: true });
                 }
               });
@@ -126,7 +118,12 @@ const myposts = useSelector((state) => state.profile?.myposts || []);
             </Button>
 
             <Avatar
-              src={user?.attachmentUrl || user?.profileImage}
+              // Dynamically build the URL to your static uploads folder
+              src={
+                user?.profilePicture 
+                  ? `${import.meta.env.VITE_BASE_URL.replace("/api", "")}/uploads/users/${user.id}/${user.profilePicture}` 
+                  : undefined
+              }
               alt={user?.username}
               sx={{
                 width: { xs: 88, sm: 96, md: 112 },
@@ -148,7 +145,7 @@ const myposts = useSelector((state) => state.profile?.myposts || []);
                   fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem" },
                 }}
               >
-                {user?.username || "Unnamed User"}
+                {user?.username || user?.name}
               </Typography>
 
               <Stack
@@ -171,6 +168,21 @@ const myposts = useSelector((state) => state.profile?.myposts || []);
                   {user?.email || "No email on file"}
                 </Typography>
               </Stack>
+
+              {/* Bio Section */}
+              {user?.bio && (
+                <Typography
+                  variant="body1"
+                  sx={{
+                    mt: 1.5,
+                    color: "text.primary",
+                    maxWidth: { xs: "100%", sm: "80%" },
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {user.bio}
+                </Typography>
+              )}
 
               <Chip
                 icon={<ArticleOutlinedIcon />}
@@ -243,9 +255,18 @@ const myposts = useSelector((state) => state.profile?.myposts || []);
                     createdAt={cont.createdAt}
                     onClick={() => {
                       dispatch(getPostById(cont.id)).then((v) => {
-                        if (v.meta.requestStatus === "fulfilled") {
+                        if (v.meta?.requestStatus === "fulfilled") {
                           setPostDet(true);
-                        }3767
+                        }
+                      });
+                    }}
+                    onUpvote={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      dispatch(toggleUpvote(cont.id)).then((v) => {
+                        if (v.meta?.requestStatus === "fulfilled") {
+                          dispatch(getPostsByUser({ id: user.id, page: 0, size: 10 }));
+                        }
                       });
                     }}
                   />

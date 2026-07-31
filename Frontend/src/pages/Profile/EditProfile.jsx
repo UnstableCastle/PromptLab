@@ -9,7 +9,6 @@ import {
   IconButton,
   Paper,
   Stack,
-  TextField,
   Typography,
 } from "@mui/material";
 import PhotoCameraOutlinedIcon from "@mui/icons-material/PhotoCameraOutlined";
@@ -18,23 +17,28 @@ import { useNavigate } from "react-router-dom";
 import LogoutDialog from "../Home/LogoutDialog";
 import { logoutUser } from "../../redux/auth/authThunk";
 import CTextField from "../../components/CTextField";
+import axios from "axios";
 
 function EditProfile() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // NOTE: adjust these field names to match your actual auth slice shape.
   const { user } = useSelector((state) => state.auth);
   const fileInputRef = useRef(null);
-  const [username, setUsername] = useState(user?.name || "");
+  
+  const [username, setUsername] = useState(user?.username || "");
   const [email, setEmail] = useState(user?.email || "");
+  const [bio, setBio] = useState(user?.bio || "");
   const [avatarFile, setAvatarFile] = useState(null);
+  
+  // Format preview URL correctly if stored locally relative to server
   const [avatarPreview, setAvatarPreview] = useState(
-    user?.attachmentUrl || user?.profileImage || "",
+    user?.profilePicture ? (user.profilePicture.startsWith("http") ? user.profilePicture : `http://localhost:8080${user.profilePicture}`) : ""
   );
+  
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [status, setStatus] = useState(null); // { type: "success" | "error", message }
+  const [status, setStatus] = useState(null);
   const [openLogout, setOpenLogout] = useState(false);
 
   const handlePhotoClick = () => fileInputRef.current?.click();
@@ -67,47 +71,56 @@ function EditProfile() {
     return Object.keys(next).length === 0;
   };
 
-//   const handleSave = () => {
-//     setStatus(null);
-//     if (!validate()) return;
+  const handleSave = async () => {
+    setStatus(null);
+    if (!validate()) return;
+    if (!user?.id) {
+      setStatus({ type: "error", message: "User session ID missing. Please log in again." });
+      return;
+    }
 
-//     // NOTE: swap this payload shape for whatever updateUserProfile expects.
-//     // If the API needs multipart upload for the photo, build a FormData here:
-//     //   const formData = new FormData();
-//     //   formData.append("username", username);
-//     //   formData.append("email", email);
-//     //   if (avatarFile) formData.append("avatar", avatarFile);
-//     const payload = {
-//       username: username.trim(),
-//       email: email.trim(),
-//       avatarFile,
-//     };
+    const formData = new FormData();
+    formData.append("username", username.trim());
+    formData.append("email", email.trim());
+    formData.append("bio", bio.trim());
+    if (avatarFile) {
+      formData.append("profilePicture", avatarFile);
+    }
 
-//     setSaving(true);
-//     dispatch(updateUserProfile(payload))
-//       .then((v) => {
-//         if (v.meta.requestStatus === "fulfilled") {
-//           setStatus({
-//             type: "success",
-//             message: "Profile updated successfully.",
-//           });
-//           setTimeout(() => navigate("/profile"), 900);
-//         } else {
-//           setStatus({
-//             type: "error",
-//             message:
-//               v.payload?.message || "Couldn't update profile. Try again.",
-//           });
-//         }
-//       })
-//       .catch(() => {
-//         setStatus({
-//           type: "error",
-//           message: "Couldn't update profile. Try again.",
-//         });
-//       })
-//       .finally(() => setSaving(false));
-//   };
+    const token = localStorage.getItem("token") || localStorage.getItem("accessToken") || sessionStorage.getItem("token");
+
+    setSaving(true);
+    try {
+      const baseUrl = import.meta.env.VITE_BASE_URL;
+      const response = await axios.put(`${baseUrl}/users/${user.id}`, formData, {
+        headers: {
+          Authorization: token ? `Bearer ${token}` : "",
+          "Content-Type": "multipart/form-data",
+        },
+        withCredentials: true,
+      });
+
+      if (response.data?.success) {
+        setStatus({
+          type: "success",
+          message: "Profile updated successfully.",
+        });
+        setTimeout(() => navigate("/profile"), 900);
+      } else {
+        setStatus({
+          type: "error",
+          message: response.data?.message || "Couldn't update profile. Try again.",
+        });
+      }
+    } catch (err) {
+      setStatus({
+        type: "error",
+        message: err.response?.data?.message || "Couldn't update profile. Try again.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <>
@@ -234,6 +247,15 @@ function EditProfile() {
                   helperText={errors.email}
                   fullWidth
                 />
+
+                <CTextField
+                  label="Bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  multiline
+                  rows={3}
+                  fullWidth
+                />
               </Stack>
 
               {/* Actions */}
@@ -245,7 +267,6 @@ function EditProfile() {
               >
                 <Button
                   variant="outlined"
-                  fullWidth={false}
                   onClick={() => navigate("/profile")}
                   disabled={saving}
                   sx={{
@@ -259,7 +280,7 @@ function EditProfile() {
 
                 <Button
                   variant="contained"
-                  onClick={()=>{}}
+                  onClick={handleSave}
                   disabled={saving}
                   sx={{
                     borderRadius: 5,

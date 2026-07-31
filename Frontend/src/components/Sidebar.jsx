@@ -101,19 +101,18 @@ function Sidebar({ mobile = false, onLogout = () => {}, onClose = () => {} }) {
             <ListItemText primary="Rising" />
           </ListItemButton>
 
-          {user.role === "ROLE_ADMIN" && (
-            <ListItemButton onClick={()=>{
+     {(user?.role === "ROLE_ADMIN" || user?.role === "ADMIN") && (
+  <ListItemButton 
+    onClick={() => navigate("/admin-dashboard")} 
+    sx={{ borderRadius: 2, mb: 0.5 }}
+  >
+    <ListItemIcon sx={{ minWidth: 40 }}>
+      <WhatshotOutlinedIcon />
+    </ListItemIcon>
+    <ListItemText primary="Admin" />
+  </ListItemButton>
+)}
 
-              console.log("Current User:", user);
-console.log("Role:", user?.role);
-              navigate("/admin-dashboard")
-            }} sx={{ borderRadius: 2, mb: 0.5 }}>
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <WhatshotOutlinedIcon />
-              </ListItemIcon>
-              <ListItemText primary="Admin" />
-            </ListItemButton>
-          )}
         </List>
       </Box>
 
