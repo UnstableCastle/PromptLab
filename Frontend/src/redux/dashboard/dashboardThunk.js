@@ -1,92 +1,69 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { ENDPOINTS, http } from "../../api";
-import { hideLoader, showLoader } from "../loaderSlice";
-import toast from "../../utils/toast";
 
-// ======================
-// Create Post
-// ======================
-export const createPost = createAsyncThunk(
-  "dashboard/createPost", 
-  async (credentials, { rejectWithValue, dispatch }) => {
-    dispatch(showLoader());
-
+const createPost = createAsyncThunk(
+  "dashboard/create-post",
+  async (credentials, { getState, rejectWithValue }) => {
     try {
+      const state = getState();
       const response = await http.post(ENDPOINTS.POSTS.CREATE, credentials);
-      dispatch(hideLoader());
-
-      if (response.data?.success) {
-        toast.success(response.data.message);
-      }
-
       return response.data;
     } catch (error) {
-      dispatch(hideLoader());
-      toast.error(error.response?.data?.message || "Something went wrong");
-      return rejectWithValue(error.response?.data || "Something went wrong");
+      return rejectWithValue(error.response?.data || "something went wrong");
     }
   }
 );
 
-// ======================
-// Get All Posts
-// ======================
-export const getAllPosts = createAsyncThunk(
+const getAllPosts = createAsyncThunk(
   "dashboard/getAllPosts",
-  async (_, { rejectWithValue }) => {
+  async (credentials, thunkApi) => {
     try {
       const response = await http.get(ENDPOINTS.POSTS.GETALL);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Something went wrong");
+      return thunkApi.rejectWithValue(
+        error.response?.data || "something went wrong",
+      );
     }
   }
 );
 
-// ======================
-// Get Post By Id
-// ======================
-export const getPostById = createAsyncThunk(
-  "dashboard/getPostById",
-  async (id, { rejectWithValue, dispatch }) => {
-    dispatch(showLoader());
-
+const getPostById = createAsyncThunk(
+  "auth/getPostByid",
+  async (id, { rejectWithValue }) => {
     try {
-      const response = await http.get(`${ENDPOINTS.POSTS.GETBYID}/${id}`);
-      dispatch(hideLoader());
-
-      if (response.data?.success || response.success) {
-        toast.success(response.data?.message || response.message);
-      }
-
+      const response = await http.get(ENDPOINTS.POSTS.GETBYID + "/" + id);
       return response.data;
     } catch (error) {
-      dispatch(hideLoader());
-      toast.error(error.response?.data?.message || "Something went wrong");
-      return rejectWithValue(error.response?.data || "Something went wrong");
+      return rejectWithValue(error.response?.data || "something went wrong");
     }
   }
 );
 
-// ======================
-// Toggle Upvote 
-// ======================
-export const toggleUpvote = createAsyncThunk(
+const getPostByUser = createAsyncThunk(
+  "auth/postbyuser",
+  async (username, { rejectWithValue }) => {
+    try {
+      const response = await http.get(ENDPOINTS.POSTS.GETBYID + username);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "something went wrong");
+    }
+  }
+);
+
+const toggleUpvote = createAsyncThunk(
   "dashboard/toggleUpvote",
   async (postId, { rejectWithValue }) => {
     try {
-      // 1. Explicitly setting the URL to match your @PostMapping
-      // 2. Passing an empty body {} which Spring Boot POST requests often require
-      await http.post(`/posts/detail/${postId}/upvote`, {});
-      
-      // Return postId so the slice knows which post to update
-      return postId;
+      // Adjust this URL if your specific upvote endpoint is different
+      const response = await http.post(`/api/posts/${postId}/upvote`); 
+      return response.data;
     } catch (error) {
-      // THE FIX: Actually show the error so you aren't guessing!
-      console.error("Upvote API Error from Spring Boot:", error.response || error);
-      toast.error(error.response?.data?.message || "Failed to upvote. Check console.");
-      
-      return rejectWithValue(error.response?.data || "Something went wrong");
+      return rejectWithValue(error.response?.data || "something went wrong");
     }
   }
 );
+
+// All functions exported correctly to prevent SyntaxErrors
+export { createPost, getAllPosts, getPostById, getPostByUser, toggleUpvote };

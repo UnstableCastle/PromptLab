@@ -4,7 +4,6 @@ import { getAllPosts, getPostById, toggleUpvote } from "./dashboardThunk";
 const initialState = {
   post: {}, 
   allPosts: [],
-  mypost: [],
   loading: false,
   error: null,
 };
@@ -37,63 +36,20 @@ const dashboardSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      
-      // ======================
-      // Optimistic UI for Upvotes
-      // ======================
-      .addCase(toggleUpvote.pending, (state, action) => {
-        const postId = action.meta.arg;
+      .addCase(toggleUpvote.fulfilled, (state, action) => {
+        const updatedPost = action.payload;
         
-        // 1. Update in allPosts array
-        const postIndex = state.allPosts.findIndex((p) => p.id === postId);
+        const postIndex = state.allPosts.findIndex((p) => p.id === updatedPost.id);
         if (postIndex !== -1) {
-          const wasLiked = state.allPosts[postIndex].hasUpvoted;
-          state.allPosts[postIndex].hasUpvoted = !wasLiked;
-          state.allPosts[postIndex].upvoteCount += wasLiked ? -1 : 1;
+          state.allPosts[postIndex] = { ...state.allPosts[postIndex], ...updatedPost };
         }
 
-        // 2. Update in mypost array (if they are stored there too)
-        const myPostIndex = state.mypost.findIndex((p) => p.id === postId);
-        if (myPostIndex !== -1) {
-          const wasLiked = state.mypost[myPostIndex].hasUpvoted;
-          state.mypost[myPostIndex].hasUpvoted = !wasLiked;
-          state.mypost[myPostIndex].upvoteCount += wasLiked ? -1 : 1;
+        if (state.post?.id === updatedPost.id) {
+          state.post = { ...state.post, ...updatedPost };
         }
-
-        // 3. Update the single post view (if opened in details modal)
-        if (state.post?.id === postId) {
-          const wasLiked = state.post.hasUpvoted;
-          state.post.hasUpvoted = !wasLiked;
-          state.post.upvoteCount += wasLiked ? -1 : 1;
-        }
-      })
-      // Revert if API fails
-      .addCase(toggleUpvote.rejected, (state, action) => {
-        const postId = action.meta.arg;
-        
-        const postIndex = state.allPosts.findIndex((p) => p.id === postId);
-        if (postIndex !== -1) {
-          const isCurrentlyLiked = state.allPosts[postIndex].hasUpvoted;
-          state.allPosts[postIndex].hasUpvoted = !isCurrentlyLiked;
-          state.allPosts[postIndex].upvoteCount += isCurrentlyLiked ? -1 : 1;
-        }
-
-        const myPostIndex = state.mypost.findIndex((p) => p.id === postId);
-        if (myPostIndex !== -1) {
-          const isCurrentlyLiked = state.mypost[myPostIndex].hasUpvoted;
-          state.mypost[myPostIndex].hasUpvoted = !isCurrentlyLiked;
-          state.mypost[myPostIndex].upvoteCount += isCurrentlyLiked ? -1 : 1;
-        }
-        
-        if (state.post?.id === postId) {
-          const isCurrentlyLiked = state.post.hasUpvoted;
-          state.post.hasUpvoted = !isCurrentlyLiked;
-          state.post.upvoteCount += isCurrentlyLiked ? -1 : 1;
-        }
-        
-        state.error = action.payload;
       });
   },
 });
 
+export const {} = dashboardSlice.actions;
 export default dashboardSlice.reducer;
