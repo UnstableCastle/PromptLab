@@ -16,12 +16,9 @@ const profileSlice = createSlice({
       .addCase(getPostsByUser.fulfilled, (state, action) => {
         // Logging the structure to see why posts aren't rendering
         console.log("Raw Post Data from Backend:", action.payload);
-        
         const data = action.payload?.data || action.payload;
         const postsArray = data?.content || data || [];
-        
-        console.log("What Redux is trying to save:", postsArray);
-        
+        // console.log("What Redux is trying to save:", postsArray);
         state.viewedUserPosts = Array.isArray(postsArray) ? postsArray : []; 
       })
       .addCase(getUserProfile.fulfilled, (state, action) => {

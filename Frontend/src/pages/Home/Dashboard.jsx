@@ -1,15 +1,29 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
-import { Box, Grid, Typography, useMediaQuery, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  Grid,
+  IconButton,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import Sidebar from "../../components/Sidebar";
 import PromptItem from "../../components/PromptItem";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllPosts, getPostById, toggleUpvote } from "../../redux/dashboard/dashboardThunk";
+import {
+  getAllPosts,
+  getPostById,
+} from "../../redux/dashboard/dashboardThunk";
 import PostDetailsDialog from "./PostDetailsDialogue";
 import RightSidebar from "../../components/RightSidebar";
 import LogoutDialog from "./LogoutDialog";
 import { logoutUser } from "../../redux/auth/authThunk";
+import CButton from "../../components/CButton";
+import { Add, PlusOne } from "@mui/icons-material";
+import { toggleUpvote } from "../../redux/posts/postThunk";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -17,10 +31,8 @@ function Dashboard() {
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down("md"));
   const isLgUp = useMediaQuery(theme.breakpoints.up("lg"));
-
   const { allPosts, post } = useSelector((state) => state.dashboard);
   const [postDet, setPostDet] = useState(false);
-  const [openLogout, setOpenLogout] = useState(false);
 
   useEffect(() => {
     dispatch(getAllPosts());
@@ -28,8 +40,6 @@ function Dashboard() {
 
   return (
     <>
-      <Navbar onLogout={() => setOpenLogout(true)} />
-
       <Box
         sx={{
           display: "flex",
@@ -38,13 +48,11 @@ function Dashboard() {
           flexDirection: { xs: "column", md: "row" },
         }}
       >
-        <Sidebar mobile={false} onLogout={() => setOpenLogout(true)} />
-
         <Box
           component="main"
           sx={{
             flex: 1,
-            minWidth: 0, 
+            minWidth: 0,
             width: "100%",
             p: { xs: 2, sm: 3, md: 4 },
           }}
@@ -78,25 +86,37 @@ function Dashboard() {
                 gap: 2,
                 flexShrink: 0,
               }}
-            ></Box>
+            >
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={() => navigate("/create-post")}
+                sx={{
+                  borderRadius: "12px",
+                  px: 3,
+                  py: 1.2,
+                  fontWeight: 600,
+                  textTransform: "none",
+                  fontSize: "0.95rem",
+                  bgcolor: "#4F46E5",
+                  boxShadow: "0 8px 20px rgba(79,70,229,0.25)",
+                  "&:hover": {
+                    bgcolor: "#4338CA",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 12px 24px rgba(79,70,229,0.35)",
+                  },
+                  transition: "all .25s ease",
+                }}
+              >
+                Create Post
+              </Button>
+            </Box>
           </Box>
 
           <PostDetailsDialog
             open={postDet}
             onClose={() => setPostDet(false)}
-            post={post || {}} 
-          />
-
-          <LogoutDialog
-            open={openLogout}
-            onClose={() => setOpenLogout(false)}
-            onLogout={() => {
-              dispatch(logoutUser()).then((v) => {
-                if (v.meta.requestStatus === "fulfilled") {
-                  navigate("/", { replace: true });
-                }
-              });
-            }}
+            post={post || {}}
           />
 
           <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
@@ -108,7 +128,7 @@ function Dashboard() {
                 <PromptItem
                   model={cont.modelInfo}
                   creatorName={cont.authorUsername}
-                  avatar={cont.attachmentUrl}
+                  avatar={cont.profilePicture}
                   title={cont.title}
                   liked={cont.hasUpvoted}
                   likes={cont.upvoteCount}
@@ -121,10 +141,13 @@ function Dashboard() {
                       }
                     });
                   }}
-                  
-                  // THE FIX: Cleaned up to properly dispatch the optimistic update 
                   onUpvote={() => {
-                    dispatch(toggleUpvote(cont.id));
+                    // const postId = cont.id || cont.postId;
+                    if (cont) {
+                      dispatch(toggleUpvote({ route: "dashboard", id: cont.id }));
+                    } else {
+                      console.error("Failed to upvote: Post ID is missing.", cont);
+                    }
                   }}
                 />
               </Grid>

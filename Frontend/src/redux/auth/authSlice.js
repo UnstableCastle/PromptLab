@@ -8,6 +8,7 @@ const UserState = {
   password1: "",
   password2: "",
   rememberMe: false,
+  role: ""
 };
 
 const initialState = {
@@ -41,6 +42,7 @@ const authSlice = createSlice({
         state.refreshToken = action.payload.refreshToken;
         state.user.id = action.payload.Id.toString();
         state.user.name = action.payload.username;
+        state.user.role = action.payload.role
         console.log(action.payload, "s=s=s=s=s=");
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -67,7 +69,7 @@ const authSlice = createSlice({
       .addCase(forgotPassSendOtp.fulfilled, (state, action) => {
         state.loading = false;
         console.log("success");
-        console.log(action.payload,"s=s=s=s=");
+        console.log(action.payload, "s=s=s=s=");
 
       })
       .addCase(forgotPassSendOtp.rejected, (state, action) => {

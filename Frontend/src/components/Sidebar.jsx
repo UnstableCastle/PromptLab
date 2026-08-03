@@ -19,10 +19,9 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-function Sidebar({ mobile = false, onLogout = () => {}, onClose = () => {} }) {
+function Sidebar({ mobile = false, onLogout = () => { }, onClose = () => { } }) {
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
-  console.log(user,"s=s=s=s=s=s=s=s")
   return (
     <Box
       sx={{
@@ -68,19 +67,16 @@ function Sidebar({ mobile = false, onLogout = () => {}, onClose = () => {} }) {
             <ListItemText primary="Home" />
           </ListItemButton>
 
-          <ListItemButton
-            onClick={() => {
-              navigate("/createPost");
-            }}
+          {/* <ListItemButton
             sx={{ borderRadius: 2, mb: 0.5 }}
           >
             <ListItemIcon sx={{ minWidth: 40 }}>
               <TrendingUpOutlinedIcon />
             </ListItemIcon>
             <ListItemText primary="Trending" />
-          </ListItemButton>
+          </ListItemButton> */}
 
-          <ListItemButton sx={{ borderRadius: 2, mb: 0.5 }}>
+          {/* <ListItemButton sx={{ borderRadius: 2, mb: 0.5 }}>
             <ListItemIcon sx={{ minWidth: 40 }}>
               <StarBorderOutlinedIcon />
             </ListItemIcon>
@@ -99,19 +95,19 @@ function Sidebar({ mobile = false, onLogout = () => {}, onClose = () => {} }) {
               <WhatshotOutlinedIcon />
             </ListItemIcon>
             <ListItemText primary="Rising" />
-          </ListItemButton>
+          </ListItemButton> */}
 
-     {(user?.role === "ROLE_ADMIN" || user?.role === "ADMIN") && (
-  <ListItemButton 
-    onClick={() => navigate("/admin-dashboard")} 
-    sx={{ borderRadius: 2, mb: 0.5 }}
-  >
-    <ListItemIcon sx={{ minWidth: 40 }}>
-      <WhatshotOutlinedIcon />
-    </ListItemIcon>
-    <ListItemText primary="Admin" />
-  </ListItemButton>
-)}
+          {(user?.role === "ROLE_ADMIN" || user?.role === "ADMIN") && (
+            <ListItemButton
+              onClick={() => navigate("/admin-dashboard")}
+              sx={{ borderRadius: 2, mb: 0.5 }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <WhatshotOutlinedIcon />
+              </ListItemIcon>
+              <ListItemText primary="Admin" />
+            </ListItemButton>
+          )}
 
         </List>
       </Box>

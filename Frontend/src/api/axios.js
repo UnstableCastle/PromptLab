@@ -6,10 +6,6 @@ import { store } from "../redux/store";
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   timeout: 15000,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
 });
 
 // Request Interceptor
@@ -19,12 +15,12 @@ axiosInstance.interceptors.request.use(
     // 1. BULLETPROOF PUBLIC ROUTE BYPASS:
     // Combine baseURL and url to get the full path Axios is calling
     const fullUrl = `${config.baseURL || ""}${config.url || ""}`;
-    
+
     // Check if the full URL contains /auth/ OR your specific public endpoints
     if (
-      fullUrl.includes('/auth/') || 
-      fullUrl.includes('/reset-password') || 
-      fullUrl.includes('/forgot-password')
+      fullUrl.includes("/auth/") ||
+      fullUrl.includes("/reset-password") ||
+      fullUrl.includes("/forgot-password")
     ) {
       // Return immediately WITHOUT adding an Authorization header
       return config;
@@ -36,7 +32,11 @@ axiosInstance.interceptors.request.use(
     // 2. ATTACH TOKEN WITH SAFETY CHECKS:
     if (stateToken && stateToken !== "undefined" && stateToken !== "null") {
       config.headers.Authorization = `Bearer ${stateToken}`;
-    } else if (storageToken && storageToken !== "undefined" && storageToken !== "null") {
+    } else if (
+      storageToken &&
+      storageToken !== "undefined" &&
+      storageToken !== "null"
+    ) {
       config.headers.Authorization = `Bearer ${storageToken}`;
     }
 

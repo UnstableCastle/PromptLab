@@ -1,8 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getAllPosts, getPostById, toggleUpvote } from "./dashboardThunk";
+import { getAllPosts, getPostById } from "./dashboardThunk";
+import { downloadPostAttachment, toggleUpvote } from "../posts/postThunk";
 
 const initialState = {
-  post: {}, 
+  post: {},
   allPosts: [],
   loading: false,
   error: null,
@@ -30,26 +31,41 @@ const dashboardSlice = createSlice({
       })
       .addCase(getPostById.fulfilled, (state, action) => {
         state.loading = false;
-        state.post = action.payload; 
+        state.post = action.payload;
       })
       .addCase(getPostById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       .addCase(toggleUpvote.fulfilled, (state, action) => {
-        const updatedPost = action.payload;
-        
-        const postIndex = state.allPosts.findIndex((p) => p.id === updatedPost.id);
-        if (postIndex !== -1) {
-          state.allPosts[postIndex] = { ...state.allPosts[postIndex], ...updatedPost };
-        }
+        // const updatedPost = action.payload;
+        // const postIndex = state.allPosts.findIndex(
+        //   (p) => p.id === updatedPost.id,
+        // );
+        // if (postIndex !== -1) {
+        //   state.allPosts[postIndex] = {
+        //     ...state.allPosts[postIndex],
+        //     ...updatedPost,
+        //   };
+        // }
 
-        if (state.post?.id === updatedPost.id) {
-          state.post = { ...state.post, ...updatedPost };
-        }
+        // if (state.post?.id === updatedPost.id) {
+        //   state.post = { ...state.post, ...updatedPost };
+        // }
+      })
+      .addCase(downloadPostAttachment.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(downloadPostAttachment.fulfilled, (state, action) => {
+        state.loading = false;
+        console.log(action.payload, "s=s=s=s=s=s=s=s=");
+      })
+      .addCase(downloadPostAttachment.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
 
-export const {} = dashboardSlice.actions;
+export const { } = dashboardSlice.actions;
 export default dashboardSlice.reducer;

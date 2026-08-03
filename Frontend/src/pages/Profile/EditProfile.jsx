@@ -25,21 +25,25 @@ function EditProfile() {
 
   const { user } = useSelector((state) => state.auth);
   const fileInputRef = useRef(null);
-  
-  const [username, setUsername] = useState(user?.username || "");
+
+  const [username, setUsername] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [bio, setBio] = useState(user?.bio || "");
   const [avatarFile, setAvatarFile] = useState(null);
-  
+  const IMG_BASE_URL = import.meta.env.VITE_IMAGE_URL;
+
   // Format preview URL correctly if stored locally relative to server
   const [avatarPreview, setAvatarPreview] = useState(
-    user?.profilePicture ? (user.profilePicture.startsWith("http") ? user.profilePicture : `http://localhost:8080${user.profilePicture}`) : ""
+    user?.profilePicture
+      ? user.profilePicture.startsWith("http")
+        ? user.profilePicture
+        : `${IMAGE_BASE_URL}${user.profilePicture}`
+      : "",
   );
-  
+
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(null);
-  const [openLogout, setOpenLogout] = useState(false);
 
   const handlePhotoClick = () => fileInputRef.current?.click();
 
@@ -75,7 +79,10 @@ function EditProfile() {
     setStatus(null);
     if (!validate()) return;
     if (!user?.id) {
-      setStatus({ type: "error", message: "User session ID missing. Please log in again." });
+      setStatus({
+        type: "error",
+        message: "User session ID missing. Please log in again.",
+      });
       return;
     }
 
@@ -87,18 +94,25 @@ function EditProfile() {
       formData.append("profilePicture", avatarFile);
     }
 
-    const token = localStorage.getItem("token") || localStorage.getItem("accessToken") || sessionStorage.getItem("token");
+    const token =
+      localStorage.getItem("token") ||
+      localStorage.getItem("accessToken") ||
+      sessionStorage.getItem("token");
 
     setSaving(true);
     try {
       const baseUrl = import.meta.env.VITE_BASE_URL;
-      const response = await axios.put(`${baseUrl}/users/${user.id}`, formData, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-          "Content-Type": "multipart/form-data",
+      const response = await axios.put(
+        `${baseUrl}/users/${user.id}`,
+        formData,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : "",
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
         },
-        withCredentials: true,
-      });
+      );
 
       if (response.data?.success) {
         setStatus({
@@ -109,13 +123,15 @@ function EditProfile() {
       } else {
         setStatus({
           type: "error",
-          message: response.data?.message || "Couldn't update profile. Try again.",
+          message:
+            response.data?.message || "Couldn't update profile. Try again.",
         });
       }
     } catch (err) {
       setStatus({
         type: "error",
-        message: err.response?.data?.message || "Couldn't update profile. Try again.",
+        message:
+          err.response?.data?.message || "Couldn't update profile. Try again.",
       });
     } finally {
       setSaving(false);
@@ -124,8 +140,6 @@ function EditProfile() {
 
   return (
     <>
-      <Navbar onLogout={() => setOpenLogout(true)} />
-
       <Box
         sx={{
           display: "flex",
@@ -134,8 +148,6 @@ function EditProfile() {
           flexDirection: { xs: "column", md: "row" },
         }}
       >
-        <Sidebar mobile={false} onLogout={() => setOpenLogout(true)} />
-
         <Box
           component="main"
           sx={{
@@ -147,18 +159,6 @@ function EditProfile() {
             justifyContent: "center",
           }}
         >
-          <LogoutDialog
-            open={openLogout}
-            onClose={() => setOpenLogout(false)}
-            onLogout={() => {
-              dispatch(logoutUser()).then((v) => {
-                if (v.meta.requestStatus === "fulfilled") {
-                  navigate("/", { replace: true });
-                }
-              });
-            }}
-          />
-
           <Box sx={{ width: "100%", maxWidth: 560 }}>
             <Typography
               variant="h5"

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "../pages/Auth/Login";
 import Register from "../pages/Auth/Register";
@@ -16,8 +16,12 @@ import VerifyOtp from "../pages/Auth/VerifyOtp";
 import ToastContainer from "../components/ToastContainer";
 import GlobalLoader from "../components/GlobalLoader";
 import UserProfile from "../pages/Profile/UserProfile";
+import SearchResults from "../pages/Search/SearchResults";
+import storage from "../utils/storage";
 import AdminDashboard from "../pages/Profile/AdminDashboard";
+
 export default function AppRouter() {
+  const atoken = storage.getToken("accessToken");
   return (
     <BrowserRouter>
       <GlobalLoader />
@@ -26,11 +30,7 @@ export default function AppRouter() {
         <Route element={<AuthLayout />}>
           <Route
             path="/"
-            element={
-              <PublicRoute>
-                <Login />
-              </PublicRoute>
-            }
+            element={atoken ? <Navigate to="/dashboard" replace /> : <Login />}
           />
 
           <Route
@@ -91,21 +91,19 @@ export default function AppRouter() {
               </ProtectedRoute>
             }
           />
-
-        <Route
-            path="/admin-dashboard"
-            element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
-
           <Route
             path="/profile"
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />
@@ -119,7 +117,7 @@ export default function AppRouter() {
           />
           {/* Added the dynamic UserProfile route here */}
           <Route
-            path="/user-profile/:id"
+            path="/user-profile"
             element={
               <ProtectedRoute>
                 <UserProfile />
@@ -127,6 +125,16 @@ export default function AppRouter() {
             }
           />
         </Route>
+
+
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <SearchResults />
+            </ProtectedRoute>
+          }
+        />
 
         {/* 404 */}
 

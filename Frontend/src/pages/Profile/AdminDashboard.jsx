@@ -35,7 +35,7 @@ function AdminDashboard() {
 
   const loading = useSelector((state) => state.loader.loading);
   const { user: authUser } = useSelector((state) => state.auth);
-  const users = useSelector((state) => state.admin.users);
+  const users = useSelector((state) => state.admin?.users);
   // const users = useSelector((state) => state.admin?.users || []);
   const posts = useSelector((state) => state.dashboard?.posts || []);
   const post = useSelector((state) => state.dashboard.post);
@@ -60,7 +60,6 @@ function AdminDashboard() {
 
   return (
     <>
-      <Navbar onLogout={() => setOpenLogout(true)} />
 
       <Box
         sx={{
@@ -69,10 +68,7 @@ function AdminDashboard() {
           minHeight: "calc(100vh - 64px)",
         }}
       >
-        <Sidebar
-          mobile={false}
-          onLogout={() => setOpenLogout(true)}
-        />
+
 
         <Box
           component="main"
@@ -81,17 +77,6 @@ function AdminDashboard() {
             p: 4,
           }}
         >
-          <LogoutDialog
-            open={openLogout}
-            onClose={() => setOpenLogout(false)}
-            onLogout={() => {
-              dispatch(logoutUser()).then((v) => {
-                if (v.meta.requestStatus === "fulfilled") {
-                  navigate("/");
-                }
-              });
-            }}
-          />
 
           <PostDetailsDialog
             open={postDet}
@@ -112,7 +97,7 @@ function AdminDashboard() {
             <Stack
               direction="row"
               spacing={3}
-            style={{ alignItems: "center" }}
+              style={{ alignItems: "center" }}
             >
               <Avatar
                 sx={{
@@ -179,13 +164,13 @@ function AdminDashboard() {
                   variant="h3"
                   fontWeight={700}
                 >
-                  {users.length}
+                  {users && users.length}
                 </Typography>
               </Paper>
             </Grid>
 
             <Grid
-              
+
               xs={12}
               md={6}
             >
@@ -244,7 +229,7 @@ function AdminDashboard() {
             >
               {[1, 2, 3, 4].map((n) => (
                 <Grid
-                  
+
                   xs={12}
                   md={6}
                   key={n}
@@ -261,11 +246,11 @@ function AdminDashboard() {
               container
               spacing={3}
             >
-              {users.map((user) => (
+              {users && users.map((user) => (
                 <Grid key={user.id}
                   xs={12}
                   md={6}
-                  
+
                 >
                   <Paper
                     sx={{
@@ -319,7 +304,7 @@ function AdminDashboard() {
             >
               {posts.map((item) => (
                 <Grid
-                  
+
                   xs={12}
                   md={6}
                   key={item.id}

@@ -3,7 +3,6 @@ import rootReducer from "./rootReducer";
 
 import { persistStore, persistReducer } from "redux-persist";
 import storageImport from "redux-persist/lib/storage";
-
 const storage = storageImport.default ?? storageImport;
 
 const persistConfig = {

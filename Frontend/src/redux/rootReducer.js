@@ -1,19 +1,23 @@
 import { combineReducers } from "@reduxjs/toolkit";
-
 import authReducer from "./auth/authSlice";
 import dashboardReducer from "./dashboard/dashboardSlice";
-import loaderReducer from "./loaderSlice";
-import adminReducer from "./admin/adminSlice";
 import profileReducer from "./profile/profileSlice";
-
-const rootReducer = combineReducers({
+import loaderReducer from "./loaderSlice";
+import searchReducer from "./search/searchSlice"
+const appReducer = combineReducers({
   auth: authReducer,
   dashboard: dashboardReducer,
-  loader: loaderReducer,
-  admin: adminReducer,
   profile: profileReducer,
+  loader: loaderReducer,
+  search: searchReducer,
 });
 
+const rootReducer = (state, action) => {
+  if (action.type === "auth/logout") {
+    state = undefined;
+  }
 
+  return appReducer(state, action);
+};
 
 export default rootReducer;

@@ -13,6 +13,8 @@ import {
 import ThumbUpAltOutlinedIcon from "@mui/icons-material/ThumbUpAltOutlined";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
+import { DeleteOutlineOutlined } from "@mui/icons-material";
+// ADDED: Import for the delete icon
 
 const PromptItem = ({
   title,
@@ -24,8 +26,11 @@ const PromptItem = ({
   likes = 0,
   liked = false,
   createdAt,
-  onUpvote, 
+  onUpvote,
   onClick,
+  // ADDED: Props to control the delete button
+  showDelete = false, 
+  onDelete,
 }) => {
   const formattedDate = createdAt
     ? new Date(createdAt).toLocaleDateString("en-IN", {
@@ -34,6 +39,8 @@ const PromptItem = ({
         year: "numeric",
       })
     : "";
+  const baseUrl = import.meta.env.VITE_BASE_URL;
+  let updatedUrl = baseUrl.replace(/\/api$/, "");
 
   return (
     <Card
@@ -79,10 +86,10 @@ const PromptItem = ({
             direction="row"
             spacing={1}
             useFlexGap
-            sx={{ flexWrap: "wrap", mb: 2 }} 
+            sx={{ flexWrap: "wrap", mb: 2 }}
           >
             {model && (
-               <Chip
+              <Chip
                 label={model}
                 size="small"
                 sx={{
@@ -95,7 +102,7 @@ const PromptItem = ({
             )}
 
             {category && (
-               <Chip
+              <Chip
                 label={category}
                 size="small"
                 variant="outlined"
@@ -149,7 +156,7 @@ const PromptItem = ({
           p: { xs: 2, sm: 2.5, md: 3 },
           pt: 2,
           display: "flex",
-          flexDirection: "column"
+          flexDirection: "column",
         }}
       >
         {/* Divider */}
@@ -173,10 +180,14 @@ const PromptItem = ({
           <Stack
             direction="row"
             spacing={1.5}
-            sx={{ alignItems: "center", minWidth: 0 }} 
+            sx={{ alignItems: "center", minWidth: 0 }}
           >
-             <Avatar
-              src={avatar}
+            <Avatar
+              src={
+                avatar
+                  ? `${updatedUrl}${avatar}`
+                  : undefined
+              }
               sx={{
                 width: 42,
                 height: 42,
@@ -187,8 +198,8 @@ const PromptItem = ({
               {!avatar && creatorName?.charAt(0)}
             </Avatar>
 
-            <Box sx={{ minWidth: 0 }}> 
-               <Typography
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
                 variant="body2"
                 fontWeight={700}
                 noWrap
@@ -200,9 +211,9 @@ const PromptItem = ({
                 <Stack
                   direction="row"
                   spacing={0.5}
-                  sx={{ alignItems: "center" }} 
+                  sx={{ alignItems: "center" }}
                 >
-                   <CalendarTodayOutlinedIcon
+                  <CalendarTodayOutlinedIcon
                     sx={{
                       fontSize: 12,
                       color: "text.secondary",
@@ -221,47 +232,71 @@ const PromptItem = ({
             </Box>
           </Stack>
 
-          {/* Right */}
-          <IconButton
-            onClick={onUpvote}
-            sx={{
-              borderRadius: 3,
-              px: 1.2,
-              py: 0.7,
-              bgcolor: liked
-                ? alpha("#4f46e5", 0.12)
-                : alpha("#4f46e5", 0.05),
-              "&:hover": {
-                bgcolor: alpha("#4f46e5", 0.18),
-              },
-            }}
-          >
-             <Stack
-              direction="row"
-              spacing={0.5}
-              sx={{ alignItems: "center" }} 
-            >
-               {liked ? (
-                 <ThumbUpAltIcon
-                  fontSize="small"
-                  sx={{ color: "#4f46e5" }}
-                />
-              ) : (
-                 <ThumbUpAltOutlinedIcon
-                  fontSize="small"
-                  sx={{ color: "#4f46e5" }}
-                />
-              )}
-
-              <Typography
-                variant="body2"
-                fontWeight={700}
-                color="#4f46e5"
+          {/* Right: Grouped Action Buttons */}
+          <Stack direction="row" spacing={1} alignItems="center">
+            
+            {/* ADDED: Delete Button (Conditionally Rendered) */}
+            {showDelete && (
+              <IconButton
+                onClick={onDelete}
+                sx={{
+                  borderRadius: 3,
+                  px: 1.2,
+                  py: 0.7,
+                  bgcolor: alpha("#ef4444", 0.05), // Light red background
+                  "&:hover": {
+                    bgcolor: alpha("#ef4444", 0.15),
+                  },
+                }}
               >
-                {likes}
-              </Typography>
-            </Stack>
-          </IconButton>
+                <DeleteOutlineOutlined
+                  fontSize="small"
+                  sx={{ color: "#ef4444" }} // Red icon color
+                />
+              </IconButton>
+            )}
+
+            <IconButton
+              onClick={onUpvote}
+              sx={{
+                borderRadius: 3,
+                px: 1.2,
+                py: 0.7,
+                bgcolor: liked
+                  ? alpha("#4f46e5", 0.12)
+                  : alpha("#4f46e5", 0.05),
+                "&:hover": {
+                  bgcolor: alpha("#4f46e5", 0.18),
+                },
+              }}
+            >
+              <Stack
+                direction="row"
+                spacing={0.5}
+                sx={{ alignItems: "center" }}
+              >
+                {liked ? (
+                  <ThumbUpAltIcon
+                    fontSize="small"
+                    sx={{ color: "#4f46e5" }}
+                  />
+                ) : (
+                  <ThumbUpAltOutlinedIcon
+                    fontSize="small"
+                    sx={{ color: "#4f46e5" }}
+                  />
+                )}
+
+                <Typography
+                  variant="body2"
+                  fontWeight={700}
+                  color="#4f46e5"
+                >
+                  {likes}
+                </Typography>
+              </Stack>
+            </IconButton>
+          </Stack>
         </Box>
       </Box>
     </Card>
